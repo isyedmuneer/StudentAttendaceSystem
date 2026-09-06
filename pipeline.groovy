@@ -32,8 +32,7 @@ pipeline {
         stage("deploy") {
             steps{
                 dir("${APP_DIR}") {
-                    // sh 'docker compose down'
-                    // sh 'docker compose up -d --build'
+                    sh 'docker compose up -d --build --force-recreate'
                 }
             }
         }
