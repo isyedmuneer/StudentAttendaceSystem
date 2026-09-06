@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-attendance}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-attendance}
+      POSTGRES_DB: ${POSTGRES_DB:-attendance}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-attendance} -d ${POSTGRES_DB:-attendance}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql+psycopg2://${POSTGRES_USER:-attendance}:${POSTGRES_PASSWORD:-attendance}@db:5432/${POSTGRES_DB:-attendance}
+      SECRET_KEY: ${SECRET_KEY:-change-me-in-production}
+      ALGORITHM: HS256
+      ACCESS_TOKEN_EXPIRE_MINUTES: 480
+      CORS_ORIGINS: http://localhost,http://localhost:5173
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+
+  frontend:
+    build: ./frontend
+    restart: unless-stopped
+    depends_on:
+      - backend
+    ports:
+      - "${FRONTEND_PORT:-8080}:80"
+
+volumes:
+  postgres_data:
