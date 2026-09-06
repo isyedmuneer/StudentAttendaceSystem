@@ -38,4 +38,13 @@ pipeline {
             }
         }
     }
+
+    post {
+        success {
+            echo "Deployed ${BRANCH} in ${APP_DIR} successfully."
+        }
+        failure {
+            echo "Deployment Failed"
+        }
+    }
 }
